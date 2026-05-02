@@ -261,7 +261,7 @@ local titleLbl = Instance.new("TextLabel", topBar)
 titleLbl.Position = UDim2.new(0, 28, 0, 0)
 titleLbl.Size = UDim2.new(0, 160, 1, 0)
 titleLbl.BackgroundTransparency = 1
-titleLbl.Text = "Nay X UPII"
+titleLbl.Text = "NayNIHCUYY"
 titleLbl.Font = Enum.Font.GothamBlack
 titleLbl.TextSize = 15
 titleLbl.TextColor3 = C.text
@@ -368,7 +368,7 @@ local currentTab = nil
 
 local tabDefs = {
 	{label = "FARM",    order = 1},
-	{label = "AUTO",    order = 2},
+	{label = "FULLY",    order = 2},
 	{label = "STATUS",  order = 3},
 	{label = "TP",      order = 4},
 	{label = "ESP",     order = 5},
@@ -732,13 +732,13 @@ local gelatinBar = makeProgressCard("Gelatin (1s)",  16)
 local bagBar     = makeProgressCard("Bag (45s)",     17)
 
 -- ============================================================
--- AUTO PAGE
+-- FULLY PAGE
 -- ============================================================
-local ap = pages["AUTO"]
+local ap = pages["FULLY"]
 
-sectionLabel(ap, "Auto Farm", 1)
+sectionLabel(ap, "Auto Fully", 1)
 
-local autoFarmToggle, autoFarmCard = makeToggleBtn(ap, "Auto Farm Loop", 2)
+local autoFarmToggle, autoFarmCard = makeToggleBtn(ap, "Auto Fully", 2)
 autoFarmCard.Size = UDim2.new(1,0,0,42)
 
 local _, cookValLbl = makeSlider(ap, "COOK AMOUNT", 1, 50, 5, 3, function(v)
@@ -973,7 +973,7 @@ local loadLbl = Instance.new("TextLabel", loadBg)
 loadLbl.Size = UDim2.new(1,0,0,60)
 loadLbl.Position = UDim2.new(0,0,0.5,-30)
 loadLbl.BackgroundTransparency = 1
-loadLbl.Text = "NayVIP"
+loadLbl.Text = "NAY STORE..."
 loadLbl.TextScaled = true
 loadLbl.Font = Enum.Font.GothamBlack
 loadLbl.TextColor3 = C.accent
@@ -1006,7 +1006,7 @@ respawnBtn.MouseButton1Click:Connect(function()
 		task.wait(0.3)
 	end
 	hideLoading()
-	loadLbl.Text = "NayVIP"
+	loadLbl.Text = "NAY STORE..."
 	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, true)
 	notify("Respawn", "Berhasil respawn!", "success")
 	respStatusLbl.Text = "Respawn berhasil!"
@@ -1522,4 +1522,4 @@ end)
 -- ============================================================
 switchTab("FARM")
 task.wait(0.5)
-notify("NAYREMAKE V1", "Script berhasil diload!", "success")
+notify("NAYYNIHCUYY", "Script berhasil diload!", "success")
