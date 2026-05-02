@@ -261,7 +261,7 @@ local titleLbl = Instance.new("TextLabel", topBar)
 titleLbl.Position = UDim2.new(0, 28, 0, 0)
 titleLbl.Size = UDim2.new(0, 160, 1, 0)
 titleLbl.BackgroundTransparency = 1
-titleLbl.Text = "NAYOZI"
+titleLbl.Text = "NAYOZIREMAKER"
 titleLbl.Font = Enum.Font.GothamBlack
 titleLbl.TextSize = 15
 titleLbl.TextColor3 = C.text
@@ -278,7 +278,7 @@ Instance.new("UICorner", badge).CornerRadius = UDim.new(0, 4)
 local badgeTxt = Instance.new("TextLabel", badge)
 badgeTxt.Size = UDim2.new(1,0,1,0)
 badgeTxt.BackgroundTransparency = 1
-badgeTxt.Text = "trial"
+badgeTxt.Text = "v1"
 badgeTxt.Font = Enum.Font.GothamBold
 badgeTxt.TextSize = 10
 badgeTxt.TextColor3 = C.accentGlow
@@ -856,7 +856,7 @@ local function tpBtn(label, cf, order)
 end
 
 sectionLabel(tp, "Quick", 1)
-tpBtn("NPC Store",  npcPos, 2)
+tpBtn("Marshmallow",  npcPos, 2)
 tpBtn("Tier",       tierPos, 3)
 sectionLabel(tp, "Apartments", 4)
 tpBtn("Apart 1", apart1, 5)
@@ -948,8 +948,8 @@ local function makeSpawnBtn2(name, pos, order)
 end
 
 makeSpawnBtn2("Dealer",     Vector3.new(511,3,601),         3)
-makeSpawnBtn2("RS 1",       Vector3.new(1140.8,10.1,451.8), 4)
-makeSpawnBtn2("RS 2",       Vector3.new(1141.2,10.1,423.2), 5)
+makeSpawnBtn2("Hospital 1",       Vector3.new(1140.8,10.1,451.8), 4)
+makeSpawnBtn2("Hospital 2",       Vector3.new(1141.2,10.1,423.2), 5)
 makeSpawnBtn2("Tier 1",     Vector3.new(985.9,10.1,247),    6)
 makeSpawnBtn2("Tier 2",     Vector3.new(989.3,11.0,228.3),  7)
 makeSpawnBtn2("Trash 1",    Vector3.new(890.9,10.1,44.3),   8)
@@ -973,7 +973,7 @@ local loadLbl = Instance.new("TextLabel", loadBg)
 loadLbl.Size = UDim2.new(1,0,0,60)
 loadLbl.Position = UDim2.new(0,0,0.5,-30)
 loadLbl.BackgroundTransparency = 1
-loadLbl.Text = "ELIXIR"
+loadLbl.Text = "NayVIP"
 loadLbl.TextScaled = true
 loadLbl.Font = Enum.Font.GothamBlack
 loadLbl.TextColor3 = C.accent
@@ -1006,7 +1006,7 @@ respawnBtn.MouseButton1Click:Connect(function()
 		task.wait(0.3)
 	end
 	hideLoading()
-	loadLbl.Text = "ELIXIR"
+	loadLbl.Text = "NayVIP"
 	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, true)
 	notify("Respawn", "Berhasil respawn!", "success")
 	respStatusLbl.Text = "Respawn berhasil!"
@@ -1522,4 +1522,4 @@ end)
 -- ============================================================
 switchTab("FARM")
 task.wait(0.5)
-notify("ELIXIR 3.5", "Script berhasil diload!", "success")
+notify("NAYREMAKE V1", "Script berhasil diload!", "success")
