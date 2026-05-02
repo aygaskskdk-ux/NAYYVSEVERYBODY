@@ -1,0 +1,606 @@
+-- SXN UPI -- REDESIGNED: DEEP PURPLE THEME + TEXT SIDEBAR
+local Players = game:GetService("Players")
+local player = game.Players.LocalPlayer
+local vim = game:GetService("VirtualInputManager")
+local ContextActionService = game:GetService("ContextActionService")
+local VirtualUser = game:GetService("VirtualUser")
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+repeat task.wait() until player.Character
+
+local playerGui = player:WaitForChild("PlayerGui")
+
+local running = false
+local autoSellEnabled = false
+local buyAmount = 1
+
+local autoFarmRunning = false
+local autoFarmStopping = false
+local cookAmount = 5
+
+local buyRemote = game:GetService("ReplicatedStorage").RemoteEvents.StorePurchase
+
+local npcPos = CFrame.new(510.762817,3.58721066,600.791504)
+local tierPos = CFrame.new(1110.18726,4.28433371,117.139168)
+
+-- ============================================================
+-- ANTI AFK
+-- ============================================================
+player.Idled:Connect(function()
+	VirtualUser:CaptureController()
+	VirtualUser:ClickButton2(Vector2.new())
+end)
+
+-- ============================================================
+-- HELPERS
+-- ============================================================
+local function holdE(t)
+	vim:SendKeyEvent(true,"E",false,game)
+	task.wait(t)
+	vim:SendKeyEvent(false,"E",false,game)
+end
+
+local function equip(name)
+	local char = player.Character
+	local tool = player.Backpack:FindFirstChild(name) or char:FindFirstChild(name)
+	if tool then
+		char.Humanoid:EquipTool(tool)
+		task.wait(.3)
+		return true
+	end
+end
+
+local function countItem(name)
+	local total = 0
+	for _,v in pairs(player.Backpack:GetChildren()) do
+		if v.Name == name then total += 1 end
+	end
+	for _,v in pairs(player.Character:GetChildren()) do
+		if v:IsA("Tool") and v.Name == name then total += 1 end
+	end
+	return total
+end
+
+local function vehicleTeleport(cf)
+	local char = player.Character
+	if not char then return end
+	local humanoid = char:FindFirstChild("Humanoid")
+	if not humanoid then return end
+	local seat = humanoid.SeatPart
+	if not seat then return end
+	local vehicle = seat:FindFirstAncestorOfClass("Model")
+	if not vehicle then return end
+	if not vehicle.PrimaryPart then vehicle.PrimaryPart = seat end
+	vehicle:SetPrimaryPartCFrame(cf)
+	task.wait(1)
+	seat.Throttle = 1
+	task.wait(0.5)
+	seat.Throttle = 0
+end
+
+local function fill(bar, time)
+	bar.Size = UDim2.new(0,0,1,0)
+	bar:TweenSize(UDim2.new(1,0,1,0), Enum.EasingDirection.InOut, Enum.EasingStyle.Linear, time, true)
+	task.delay(time, function() bar.Size = UDim2.new(0,0,1,0) end)
+end
+
+-- ============================================================
+-- GUI SETUP
+-- ============================================================
+local gui = Instance.new("ScreenGui")
+gui.Name = "UPII VIP"
+gui.Parent = playerGui
+gui.ResetOnSpawn = false
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- ============================================================
+-- COLOR PALETTE (redesigned - deep purple, not AI-looking)
+-- ============================================================
+local C = {
+	bg        = Color3.fromRGB(8,  7,  14),
+	surface   = Color3.fromRGB(14, 12, 24),
+	panel     = Color3.fromRGB(18, 16, 30),
+	card      = Color3.fromRGB(24, 21, 40),
+	sidebar   = Color3.fromRGB(11,  9, 20),
+	accent    = Color3.fromRGB(130, 60, 240),
+	accentDim = Color3.fromRGB(75,  35, 140),
+	accentGlow= Color3.fromRGB(175, 120, 255),
+	accentSoft= Color3.fromRGB(100, 55, 190),
+	text      = Color3.fromRGB(220, 215, 245),
+	textMid   = Color3.fromRGB(145, 138, 175),
+	textDim   = Color3.fromRGB(75,  68, 100),
+	green     = Color3.fromRGB(55,  200, 110),
+	red       = Color3.fromRGB(220, 60,  75),
+	border    = Color3.fromRGB(38,  32,  62),
+	borderAct = Color3.fromRGB(100, 55, 190),
+}
+
+-- ============================================================
+-- NOTIFICATION SYSTEM
+-- ============================================================
+local notifContainer = Instance.new("Frame", gui)
+notifContainer.Size = UDim2.new(0, 270, 1, 0)
+notifContainer.Position = UDim2.new(1, -280, 0, 0)
+notifContainer.BackgroundTransparency = 1
+notifContainer.ZIndex = 100
+
+local notifLayout = Instance.new("UIListLayout", notifContainer)
+notifLayout.Padding = UDim.new(0, 6)
+notifLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+notifLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+local notifPadding = Instance.new("UIPadding", notifContainer)
+notifPadding.PaddingBottom = UDim.new(0, 14)
+notifPadding.PaddingRight = UDim.new(0, 8)
+
+local notifCount = 0
+local function notify(title, msg, ntype)
+	notifCount += 1
+	local color = ntype == "success" and C.green or ntype == "error" and C.red or C.accent
+
+	local card = Instance.new("Frame", notifContainer)
+	card.Size = UDim2.new(1, 0, 0, 58)
+	card.BackgroundColor3 = C.card
+	card.BorderSizePixel = 0
+	card.ClipsDescendants = true
+	card.ZIndex = 100
+	card.LayoutOrder = notifCount
+
+	Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
+
+	local stroke = Instance.new("UIStroke", card)
+	stroke.Color = color
+	stroke.Thickness = 1
+	stroke.Transparency = 0.5
+
+	local bar_left = Instance.new("Frame", card)
+	bar_left.Size = UDim2.new(0, 3, 1, 0)
+	bar_left.BackgroundColor3 = color
+	bar_left.BorderSizePixel = 0
+	bar_left.ZIndex = 101
+
+	local t = Instance.new("TextLabel", card)
+	t.Position = UDim2.new(0, 14, 0, 7)
+	t.Size = UDim2.new(1, -22, 0, 18)
+	t.BackgroundTransparency = 1
+	t.Text = title
+	t.Font = Enum.Font.GothamBold
+	t.TextSize = 13
+	t.TextColor3 = C.text
+	t.TextXAlignment = Enum.TextXAlignment.Left
+	t.ZIndex = 101
+
+	local m = Instance.new("TextLabel", card)
+	m.Position = UDim2.new(0, 14, 0, 26)
+	m.Size = UDim2.new(1, -22, 0, 26)
+	m.BackgroundTransparency = 1
+	m.Text = msg
+	m.Font = Enum.Font.Gotham
+	m.TextSize = 11
+	m.TextColor3 = C.textMid
+	m.TextXAlignment = Enum.TextXAlignment.Left
+	m.TextWrapped = true
+	m.ZIndex = 101
+
+	local timerBar = Instance.new("Frame", card)
+	timerBar.Position = UDim2.new(0, 3, 1, -2)
+	timerBar.Size = UDim2.new(1, -3, 0, 2)
+	timerBar.BackgroundColor3 = color
+	timerBar.BorderSizePixel = 0
+	timerBar.ZIndex = 101
+
+	card.Position = UDim2.new(1, 16, 0, 0)
+	TweenService:Create(card, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {Position = UDim2.new(0,0,0,0)}):Play()
+	TweenService:Create(timerBar, TweenInfo.new(3.5, Enum.EasingStyle.Linear), {Size = UDim2.new(0,3,0,2)}):Play()
+
+	task.delay(3.5, function()
+		TweenService:Create(card, TweenInfo.new(0.25, Enum.EasingStyle.Quint), {Position = UDim2.new(1,16,0,0)}):Play()
+		task.wait(0.3)
+		card:Destroy()
+	end)
+end
+
+-- ============================================================
+-- MAIN WINDOW
+-- ============================================================
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0, 660, 0, 430)
+main.Position = UDim2.new(0.5, -330, 0.5, -215)
+main.BackgroundColor3 = C.bg
+main.Active = true
+main.Draggable = true
+main.ClipsDescendants = false
+
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
+
+local mainStroke = Instance.new("UIStroke", main)
+mainStroke.Color = C.border
+mainStroke.Thickness = 1
+
+-- subtle inner glow top
+local topGlow = Instance.new("Frame", main)
+topGlow.Size = UDim2.new(1, 0, 0, 1)
+topGlow.BackgroundColor3 = C.accentSoft
+topGlow.BorderSizePixel = 0
+topGlow.ZIndex = 5
+topGlow.BackgroundTransparency = 0.3
+
+-- ============================================================
+-- TOP BAR
+-- ============================================================
+local topBar = Instance.new("Frame", main)
+topBar.Size = UDim2.new(1, 0, 0, 46)
+topBar.BackgroundColor3 = C.surface
+topBar.ZIndex = 2
+Instance.new("UICorner", topBar).CornerRadius = UDim.new(0, 12)
+
+local topBarFix = Instance.new("Frame", topBar)
+topBarFix.Size = UDim2.new(1, 0, 0, 12)
+topBarFix.Position = UDim2.new(0, 0, 1, -12)
+topBarFix.BackgroundColor3 = C.surface
+topBarFix.BorderSizePixel = 0
+
+-- accent line under topbar
+local topAccentLine = Instance.new("Frame", topBar)
+topAccentLine.Size = UDim2.new(1, 0, 0, 1)
+topAccentLine.Position = UDim2.new(0, 0, 1, -1)
+topAccentLine.BackgroundColor3 = C.border
+topAccentLine.BorderSizePixel = 0
+
+-- small accent square
+local accentSquare = Instance.new("Frame", topBar)
+accentSquare.Size = UDim2.new(0, 4, 0, 20)
+accentSquare.Position = UDim2.new(0, 16, 0.5, -10)
+accentSquare.BackgroundColor3 = C.accent
+accentSquare.BorderSizePixel = 0
+Instance.new("UICorner", accentSquare).CornerRadius = UDim.new(0, 2)
+
+local titleLbl = Instance.new("TextLabel", topBar)
+titleLbl.Position = UDim2.new(0, 28, 0, 0)
+titleLbl.Size = UDim2.new(0, 160, 1, 0)
+titleLbl.BackgroundTransparency = 1
+titleLbl.Text = "UPII STORE-- ELIXIR 3.5 -- REDESIGNED: DEEP PURPLE THEME + TEXT SIDEBAR
+local Players = game:GetService("Players")
+local player = game.Players.LocalPlayer
+local vim = game:GetService("VirtualInputManager")
+local ContextActionService = game:GetService("ContextActionService")
+local VirtualUser = game:GetService("VirtualUser")
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+repeat task.wait() until player.Character
+
+local playerGui = player:WaitForChild("PlayerGui")
+
+local running = false
+local autoSellEnabled = false
+local buyAmount = 1
+
+local autoFarmRunning = false
+local autoFarmStopping = false
+local cookAmount = 5
+
+local buyRemote = game:GetService("ReplicatedStorage").RemoteEvents.StorePurchase
+
+local npcPos = CFrame.new(510.762817,3.58721066,600.791504)
+local tierPos = CFrame.new(1110.18726,4.28433371,117.139168)
+
+-- ============================================================
+-- ANTI AFK
+-- ============================================================
+player.Idled:Connect(function()
+	VirtualUser:CaptureController()
+	VirtualUser:ClickButton2(Vector2.new())
+end)
+
+-- ============================================================
+-- HELPERS
+-- ============================================================
+local function holdE(t)
+	vim:SendKeyEvent(true,"E",false,game)
+	task.wait(t)
+	vim:SendKeyEvent(false,"E",false,game)
+end
+
+local function equip(name)
+	local char = player.Character
+	local tool = player.Backpack:FindFirstChild(name) or char:FindFirstChild(name)
+	if tool then
+		char.Humanoid:EquipTool(tool)
+		task.wait(.3)
+		return true
+	end
+end
+
+local function countItem(name)
+	local total = 0
+	for _,v in pairs(player.Backpack:GetChildren()) do
+		if v.Name == name then total += 1 end
+	end
+	for _,v in pairs(player.Character:GetChildren()) do
+		if v:IsA("Tool") and v.Name == name then total += 1 end
+	end
+	return total
+end
+
+local function vehicleTeleport(cf)
+	local char = player.Character
+	if not char then return end
+	local humanoid = char:FindFirstChild("Humanoid")
+	if not humanoid then return end
+	local seat = humanoid.SeatPart
+	if not seat then return end
+	local vehicle = seat:FindFirstAncestorOfClass("Model")
+	if not vehicle then return end
+	if not vehicle.PrimaryPart then vehicle.PrimaryPart = seat end
+	vehicle:SetPrimaryPartCFrame(cf)
+	task.wait(1)
+	seat.Throttle = 1
+	task.wait(0.5)
+	seat.Throttle = 0
+end
+
+local function fill(bar, time)
+	bar.Size = UDim2.new(0,0,1,0)
+	bar:TweenSize(UDim2.new(1,0,1,0), Enum.EasingDirection.InOut, Enum.EasingStyle.Linear, time, true)
+	task.delay(time, function() bar.Size = UDim2.new(0,0,1,0) end)
+end
+
+-- ============================================================
+-- GUI SETUP
+-- ============================================================
+local gui = Instance.new("ScreenGui")
+gui.Name = "ELIXIR_3_5"
+gui.Parent = playerGui
+gui.ResetOnSpawn = false
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- ============================================================
+-- COLOR PALETTE (redesigned - deep purple, not AI-looking)
+-- ============================================================
+local C = {
+	bg        = Color3.fromRGB(8,  7,  14),
+	surface   = Color3.fromRGB(14, 12, 24),
+	panel     = Color3.fromRGB(18, 16, 30),
+	card      = Color3.fromRGB(24, 21, 40),
+	sidebar   = Color3.fromRGB(11,  9, 20),
+	accent    = Color3.fromRGB(130, 60, 240),
+	accentDim = Color3.fromRGB(75,  35, 140),
+	accentGlow= Color3.fromRGB(175, 120, 255),
+	accentSoft= Color3.fromRGB(100, 55, 190),
+	text      = Color3.fromRGB(220, 215, 245),
+	textMid   = Color3.fromRGB(145, 138, 175),
+	textDim   = Color3.fromRGB(75,  68, 100),
+	green     = Color3.fromRGB(55,  200, 110),
+	red       = Color3.fromRGB(220, 60,  75),
+	border    = Color3.fromRGB(38,  32,  62),
+	borderAct = Color3.fromRGB(100, 55, 190),
+}
+
+-- ============================================================
+-- NOTIFICATION SYSTEM
+-- ============================================================
+local notifContainer = Instance.new("Frame", gui)
+notifContainer.Size = UDim2.new(0, 270, 1, 0)
+notifContainer.Position = UDim2.new(1, -280, 0, 0)
+notifContainer.BackgroundTransparency = 1
+notifContainer.ZIndex = 100
+
+local notifLayout = Instance.new("UIListLayout", notifContainer)
+notifLayout.Padding = UDim.new(0, 6)
+notifLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+notifLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+local notifPadding = Instance.new("UIPadding", notifContainer)
+notifPadding.PaddingBottom = UDim.new(0, 14)
+notifPadding.PaddingRight = UDim.new(0, 8)
+
+local notifCount = 0
+local function notify(title, msg, ntype)
+	notifCount += 1
+	local color = ntype == "success" and C.green or ntype == "error" and C.red or C.accent
+
+	local card = Instance.new("Frame", notifContainer)
+	card.Size = UDim2.new(1, 0, 0, 58)
+	card.BackgroundColor3 = C.card
+	card.BorderSizePixel = 0
+	card.ClipsDescendants = true
+	card.ZIndex = 100
+	card.LayoutOrder = notifCount
+
+	Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
+
+	local stroke = Instance.new("UIStroke", card)
+	stroke.Color = color
+	stroke.Thickness = 1
+	stroke.Transparency = 0.5
+
+	local bar_left = Instance.new("Frame", card)
+	bar_left.Size = UDim2.new(0, 3, 1, 0)
+	bar_left.BackgroundColor3 = color
+	bar_left.BorderSizePixel = 0
+	bar_left.ZIndex = 101
+
+	local t = Instance.new("TextLabel", card)
+	t.Position = UDim2.new(0, 14, 0, 7)
+	t.Size = UDim2.new(1, -22, 0, 18)
+	t.BackgroundTransparency = 1
+	t.Text = title
+	t.Font = Enum.Font.GothamBold
+	t.TextSize = 13
+	t.TextColor3 = C.text
+	t.TextXAlignment = Enum.TextXAlignment.Left
+	t.ZIndex = 101
+
+	local m = Instance.new("TextLabel", card)
+	m.Position = UDim2.new(0, 14, 0, 26)
+	m.Size = UDim2.new(1, -22, 0, 26)
+	m.BackgroundTransparency = 1
+	m.Text = msg
+	m.Font = Enum.Font.Gotham
+	m.TextSize = 11
+	m.TextColor3 = C.textMid
+	m.TextXAlignment = Enum.TextXAlignment.Left
+	m.TextWrapped = true
+	m.ZIndex = 101
+
+	local timerBar = Instance.new("Frame", card)
+	timerBar.Position = UDim2.new(0, 3, 1, -2)
+	timerBar.Size = UDim2.new(1, -3, 0, 2)
+	timerBar.BackgroundColor3 = color
+	timerBar.BorderSizePixel = 0
+	timerBar.ZIndex = 101
+
+	card.Position = UDim2.new(1, 16, 0, 0)
+	TweenService:Create(card, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {Position = UDim2.new(0,0,0,0)}):Play()
+	TweenService:Create(timerBar, TweenInfo.new(3.5, Enum.EasingStyle.Linear), {Size = UDim2.new(0,3,0,2)}):Play()
+
+	task.delay(3.5, function()
+		TweenService:Create(card, TweenInfo.new(0.25, Enum.EasingStyle.Quint), {Position = UDim2.new(1,16,0,0)}):Play()
+		task.wait(0.3)
+		card:Destroy()
+	end)
+end
+
+-- ============================================================
+-- MAIN WINDOW
+-- ============================================================
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0, 660, 0, 430)
+main.Position = UDim2.new(0.5, -330, 0.5, -215)
+main.BackgroundColor3 = C.bg
+main.Active = true
+main.Draggable = true
+main.ClipsDescendants = false
+
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
+
+local mainStroke = Instance.new("UIStroke", main)
+mainStroke.Color = C.border
+mainStroke.Thickness = 1
+
+-- subtle inner glow top
+local topGlow = Instance.new("Frame", main)
+topGlow.Size = UDim2.new(1, 0, 0, 1)
+topGlow.BackgroundColor3 = C.accentSoft
+topGlow.BorderSizePixel = 0
+topGlow.ZIndex = 5
+topGlow.BackgroundTransparency = 0.3
+
+-- ============================================================
+-- TOP BAR
+-- ============================================================
+local topBar = Instance.new("Frame", main)
+topBar.Size = UDim2.new(1, 0, 0, 46)
+topBar.BackgroundColor3 = C.surface
+topBar.ZIndex = 2
+Instance.new("UICorner", topBar).CornerRadius = UDim.new(0, 12)
+
+local topBarFix = Instance.new("Frame", topBar)
+topBarFix.Size = UDim2.new(1, 0, 0, 12)
+topBarFix.Position = UDim2.new(0, 0, 1, -12)
+topBarFix.BackgroundColor3 = C.surface
+topBarFix.BorderSizePixel = 0
+
+-- accent line under topbar
+local topAccentLine = Instance.new("Frame", topBar)
+topAccentLine.Size = UDim2.new(1, 0, 0, 1)
+topAccentLine.Position = UDim2.new(0, 0, 1, -1)
+topAccentLine.BackgroundColor3 = C.border
+topAccentLine.BorderSizePixel = 0
+
+-- small accent square
+local accentSquare = Instance.new("Frame", topBar)
+accentSquare.Size = UDim2.new(0, 4, 0, 20)
+accentSquare.Position = UDim2.new(0, 16, 0.5, -10)
+accentSquare.BackgroundColor3 = C.accent
+accentSquare.BorderSizePixel = 0
+Instance.new("UICorner", accentSquare).CornerRadius = UDim.new(0, 2)
+
+local titleLbl = Instance.new("TextLabel", topBar)
+titleLbl.Position = UDim2.new(0, 28, 0, 0)
+titleLbl.Size = UDim2.new(0, 160, 1, 0)
+titleLbl.BackgroundTransparency = 1
+titleLbl.Text = "ELIXIR 3.5"
+titleLbl.Font = Enum.Font.GothamBlack
+titleLbl.TextSize = 15
+titleLbl.TextColor3 = C.text
+titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+
+-- version badge
+local badge = Instance.new("Frame", topBar)
+badge.Size = UDim2.new(0, 38, 0, 18)
+badge.Position = UDim2.new(0, 190, 0.5, -9)
+badge.BackgroundColor3 = C.accentDim
+badge.BorderSizePixel = 0
+Instance.new("UICorner", badge).CornerRadius = UDim.new(0, 4)
+
+local badgeTxt = Instance.new("TextLabel", badge)
+badgeTxt.Size = UDim2.new(1,0,1,0)
+badgeTxt.BackgroundTransparency = 1
+badgeTxt.Text = "v3.5"
+badgeTxt.Font = Enum.Font.GothamBold
+badgeTxt.TextSize = 10
+badgeTxt.TextColor3 = C.accentGlow
+
+-- close button
+local closeBtn = Instance.new("TextButton", topBar)
+closeBtn.Size = UDim2.new(0, 28, 0, 28)
+closeBtn.Position = UDim2.new(1, -38, 0.5, -14)
+closeBtn.BackgroundColor3 = Color3.fromRGB(50, 15, 22)
+closeBtn.Text = "x"
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 12
+closeBtn.TextColor3 = C.red
+closeBtn.BorderSizePixel = 0
+Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 6)
+
+closeBtn.MouseButton1Click:Connect(function()
+	running = false
+	autoSellEnabled = false
+	notify("Elixir", "Script dihentikan.", "error")
+	task.wait(0.4)
+	gui:Destroy()
+end)
+
+-- minimize button
+local minBtn = Instance.new("TextButton", topBar)
+minBtn.Size = UDim2.new(0, 28, 0, 28)
+minBtn.Position = UDim2.new(1, -72, 0.5, -14)
+minBtn.BackgroundColor3 = C.card
+minBtn.Text = "-"
+minBtn.Font = Enum.Font.GothamBold
+minBtn.TextSize = 14
+minBtn.TextColor3 = C.textMid
+minBtn.BorderSizePixel = 0
+Instance.new("UICorner", minBtn).CornerRadius = UDim.new(0, 6)
+
+-- ============================================================
+-- TEXT SIDEBAR
+-- ============================================================
+local sidebar = Instance.new("Frame", main)
+sidebar.Size = UDim2.new(0, 80, 1, -46)
+sidebar.Position = UDim2.new(0, 0, 0, 46)
+sidebar.BackgroundColor3 = C.sidebar
+sidebar.ZIndex = 2
+sidebar.ClipsDescendants = false
+
+-- right border line (parented to main so it doesn't join the layout)
+local sidebarLine = Instance.new("Frame", main)
+sidebarLine.Size = UDim2.new(0, 1, 1, -46)
+sidebarLine.Position = UDim2.new(0, 79, 0, 46)
+sidebarLine.BackgroundColor3 = C.border
+sidebarLine.BorderSizePixel = 0
+sidebarLine.ZIndex = 3
+
+local sidebarLayout = Instance.new("UIListLayout", sidebar)
+sidebarLayout.Padding = UDim.new(0, 4)
+sidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+sidebarLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+sidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+local sidebarPad = Instance.new("UIPadding", sidebar)
+sidebarPad
