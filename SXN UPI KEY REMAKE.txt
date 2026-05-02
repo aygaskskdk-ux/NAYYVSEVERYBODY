@@ -25,79 +25,7 @@ local buyRemote = game:GetService("ReplicatedStorage").RemoteEvents.StorePurchas
 local npcPos = CFrame.new(510.762817,3.58721066,600.791504)
 local tierPos = CFrame.new(1110.18726,4.28433371,117.139168)
 
--- ==============================================
---           SISTEM KUNCI AKSES LENGKAP
--- ==============================================
-
-local requiredKey = "NayySxNJ3ur" 
-local accessGranted = false
-local function checkKey(userInputKey)
-    return userInputKey == requiredKey
-end
-local gui = Instance.new("ScreenGui")
-gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-local keyFrame = Instance.new("Frame")
-keyFrame.Name = "KeyFrame"
-keyFrame.Size = UDim2.new(0, 320, 0, 160) 
-keyFrame.Position = UDim2.new(0.5, -160, 0.5, -80) 
-keyFrame.BackgroundColor3 = C.surface 
-keyFrame.BorderColor3 = C.border
-keyFrame.ZIndex = 999 
-keyFrame.Parent = gui 
-local keyTitle = Instance.new("TextLabel")
-keyTitle.Size = UDim2.new(1, 0, 0, 40)
-keyTitle.Position = UDim2.new(0, 0, 0, 5)
-keyTitle.Text = "!KEY SYSTEM!‘"
-keyTitle.Font = Enum.Font.GothamBold
-keyTitle.TextSize = 16
-keyTitle.TextColor3 = C.text
-keyTitle.BackgroundTransparency = 1
-keyTitle.ZIndex = 1000
-keyTitle.Parent = keyFrame
-local keyBox = Instance.new("TextBox")
-keyBox.Size = UDim2.new(0.9, 0, 0, 35)
-keyBox.Position = UDim2.new(0.05, 0, 0, 50)
-keyBox.PlaceholderText = "Paste Key Here!"
-keyBox.Font = Enum.Font.Gotham
-keyBox.TextSize = 14
-keyBox.TextColor3 = C.text
-keyBox.BackgroundColor3 = C.panel
-keyBox.BorderColor3 = C.border
-keyBox.ClearTextOnFocus = true 
-keyBox.ZIndex = 1000
-keyBox.Parent = keyFrame
-local confirmBtn = Instance.new("TextButton")
-confirmBtn.Size = UDim2.new(0.4, 0, 0, 35)
-confirmBtn.Position = UDim2.new(0.3, 0, 0, 95)
-confirmBtn.Text = "Check"
-confirmBtn.Font = Enum.Font.GothamBold
-confirmBtn.TextSize = 14
-confirmBtn.TextColor3 = C.text
-confirmBtn.BackgroundColor3 = C.accent
-confirmBtn.BorderColor3 = C.border
-confirmBtn.AutoButtonColor = true
-confirmBtn.ZIndex = 1000
-confirmBtn.Parent = keyFrame
-local messageText = Instance.new("TextLabel")
-messageText.Size = UDim2.new(1, 0, 0, 20)
-messageText.Position = UDim2.new(0, 0, 1, -20)
-messageText.Text = ""
-messageText.Font = Enum.Font.Gotham
-messageText.TextSize = 12
-messageText.BackgroundTransparency = 1
-messageText.ZIndex = 1000
-messageText.TextColor3 = C.red 
-messageText.Parent = keyFrame
-confirmBtn.MouseButton1Click:Connect(function()
-    if checkKey(keyBox.Text) then
-        messageText.TextColor3 = C.green 
-        messageText.Text = "Key Succesâœ…"
-        accessGranted = true -- 
-        task.wait(2) 
-        keyFrame:Destroy() 
-        
-        
-        
+     
 -- ============================================================
 -- ANTI AFK
 -- ============================================================
@@ -189,6 +117,7 @@ local C = {
 	border    = Color3.fromRGB(38,  32,  62),
 	borderAct = Color3.fromRGB(100, 55, 190),
 }
+
 
 -- ============================================================
 -- NOTIFICATION SYSTEM
@@ -431,6 +360,79 @@ local contentFix = Instance.new("Frame", content)
 contentFix.Size = UDim2.new(0, 12, 1, 0)
 contentFix.BackgroundColor3 = C.panel
 contentFix.BorderSizePixel = 0
+
+
+-- ==============================================
+--         KEY SYSTEM
+-- ==============================================
+
+local requiredKey = "NayySxNJ3ur" 
+local accessGranted = false
+local function checkKey(userInputKey)
+    return userInputKey == requiredKey
+end
+local gui = Instance.new("ScreenGui")
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+local keyFrame = Instance.new("Frame")
+keyFrame.Name = "KeyFrame"
+keyFrame.Size = UDim2.new(0, 320, 0, 160) 
+keyFrame.Position = UDim2.new(0.5, -160, 0.5, -80) 
+keyFrame.BackgroundColor3 = C.borderAct
+keyFrame.BorderColor3 = C.accentSoft
+keyFrame.ZIndex = 999 
+keyFrame.Parent = gui 
+local keyTitle = Instance.new("TextLabel")
+keyTitle.Size = UDim2.new(1, 0, 0, 40)
+keyTitle.Position = UDim2.new(0, 0, 0, 5)
+keyTitle.Text = "!KEY SYSTEM!‘"
+keyTitle.Font = Enum.Font.GothamBold
+keyTitle.TextSize = 16
+keyTitle.TextColor3 = C.textMid
+keyTitle.BackgroundTransparency = 1
+keyTitle.ZIndex = 1000
+keyTitle.Parent = keyFrame
+local keyBox = Instance.new("TextBox")
+keyBox.Size = UDim2.new(0.9, 0, 0, 35)
+keyBox.Position = UDim2.new(0.05, 0, 0, 50)
+keyBox.PlaceholderText = "Paste Key Here!"
+keyBox.Font = Enum.Font.Gotham
+keyBox.TextSize = 14
+keyBox.TextColor3 = C.text
+keyBox.BackgroundColor3 = C.panel
+keyBox.BorderColor3 = C.border
+keyBox.ClearTextOnFocus = true 
+keyBox.ZIndex = 1000
+keyBox.Parent = keyFrame
+local confirmBtn = Instance.new("TextButton")
+confirmBtn.Size = UDim2.new(0.4, 0, 0, 35)
+confirmBtn.Position = UDim2.new(0.3, 0, 0, 95)
+confirmBtn.Text = "Check"
+confirmBtn.Font = Enum.Font.GothamBold
+confirmBtn.TextSize = 14
+confirmBtn.TextColor3 = C.text
+confirmBtn.BackgroundColor3 = C.accent
+confirmBtn.BorderColor3 = C.border
+confirmBtn.AutoButtonColor = true
+confirmBtn.ZIndex = 1000
+confirmBtn.Parent = keyFrame
+local messageText = Instance.new("TextLabel")
+messageText.Size = UDim2.new(1, 0, 0, 20)
+messageText.Position = UDim2.new(0, 0, 1, -20)
+messageText.Text = ""
+messageText.Font = Enum.Font.Gotham
+messageText.TextSize = 12
+messageText.BackgroundTransparency = 1
+messageText.ZIndex = 1000
+messageText.TextColor3 = C.textDim
+messageText.Parent = keyFrame
+confirmBtn.MouseButton1Click:Connect(function()
+    if checkKey(keyBox.Text) then
+        messageText.TextColor3 = Color3.fromRGB(70, 255, 70),
+        messageText.Text = "Key Succes!"
+        accessGranted = true 
+        task.wait(2) 
+        keyFrame:Destroy() 
+        
 
 -- ============================================================
 -- TAB SYSTEM
@@ -1598,7 +1600,7 @@ task.wait(0.5)
 notify("NAYYNIHCUYY", "Script berhasil diload!", "success")
 
 else
-        messageText.TextColor3 = C.red -- Warna pesan tetap merah
+        messageText.TextColor3 = Color3.fromRGB(255, 70, 70),
         messageText.Text = " Key Incorrect!"
         keyBox.Text = "" 
     end
