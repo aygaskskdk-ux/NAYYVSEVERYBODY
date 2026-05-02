@@ -32,8 +32,9 @@ local tierPos = CFrame.new(1110.18726,4.28433371,117.139168)
 local requiredKey = "NayySxNJ3ur" 
 local accessGranted = false
 local function checkKey(userInputKey)
-    return userInputKey == NayySxNJ3ur
+    return userInputKey == requiredKey
 end
+local gui = Instance.new("ScreenGui")
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 local keyFrame = Instance.new("Frame")
 keyFrame.Name = "KeyFrame"
@@ -46,7 +47,7 @@ keyFrame.Parent = gui
 local keyTitle = Instance.new("TextLabel")
 keyTitle.Size = UDim2.new(1, 0, 0, 40)
 keyTitle.Position = UDim2.new(0, 0, 0, 5)
-keyTitle.Text = "Paste Key🔑"
+keyTitle.Text = "!KEY SYSTEM!‘"
 keyTitle.Font = Enum.Font.GothamBold
 keyTitle.TextSize = 16
 keyTitle.TextColor3 = C.text
@@ -56,7 +57,7 @@ keyTitle.Parent = keyFrame
 local keyBox = Instance.new("TextBox")
 keyBox.Size = UDim2.new(0.9, 0, 0, 35)
 keyBox.Position = UDim2.new(0.05, 0, 0, 50)
-keyBox.PlaceholderText = "NayySxNJ3ur"
+keyBox.PlaceholderText = "Paste Key Here!"
 keyBox.Font = Enum.Font.Gotham
 keyBox.TextSize = 14
 keyBox.TextColor3 = C.text
@@ -90,7 +91,7 @@ messageText.Parent = keyFrame
 confirmBtn.MouseButton1Click:Connect(function()
     if checkKey(keyBox.Text) then
         messageText.TextColor3 = C.green 
-        messageText.Text = "Key Succes✅"
+        messageText.Text = "Key Succesâœ…"
         accessGranted = true -- 
         task.wait(2) 
         keyFrame:Destroy() 
@@ -1598,7 +1599,7 @@ notify("NAYYNIHCUYY", "Script berhasil diload!", "success")
 
 else
         messageText.TextColor3 = C.red -- Warna pesan tetap merah
-        messageText.Text = " Key Incorrect❌"
+        messageText.Text = " Key Incorrect!"
         keyBox.Text = "" 
     end
 end)
