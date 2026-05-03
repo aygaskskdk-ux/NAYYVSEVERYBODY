@@ -1,6 +1,6 @@
---[[
-    NayyStarboyyv2 -- DESIGNED SCRIPT AIM SOUTH BRONX V1 (INTEGRATED)
-    Features: Anti-AFK, Combat (Aimbot Head), ESP, etc.
+--[[ 
+    NayyStarboyyv2 -- ULTIMATE INTEGRATED HUB V3
+    Features: Smooth Aimlock, Prediction, FOV Circle, Box/Name ESP, Anti-AFK
     Supported: PC & MOBILE
 ]]
 
@@ -11,182 +11,241 @@ local TweenService = game:GetService("TweenService")
 local VirtualUser = game:GetService("VirtualUser")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
+local Mouse = LocalPlayer:GetMouse()
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 -- ============================================================
--- SETTINGS & STATE
+-- GLOBAL SETTINGS
 -- ============================================================
 local Settings = {
     AimbotEnabled = false,
-    Smoothness = 0.15,
-    FOV = 200,
     TargetPart = "Head",
-    AimbotKey = Enum.KeyCode.Z,
+    Prediction = 0.135,
+    Smoothness = 0.1,
+    FOV = 150,
+    ShowFOV = true,
+    Keybind = Enum.KeyCode.Q,
+    -- ESP Settings
+    EspEnabled = false,
+    Boxes = false,
+    Names = false
 }
 
-local IsHoldingAimbot = false
-local MobileAimbotToggle = false
+local Locking = false
+local EspObjects = {}
+
+-- FOV Circle
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Thickness = 2
+FOVCircle.Color = Color3.fromRGB(130, 60, 240)
+FOVCircle.Filled = false
+FOVCircle.Transparency = 0.7
+FOVCircle.Visible = false
 
 -- ============================================================
--- ANTI AFK
+-- ESP SYSTEM
 -- ============================================================
-LocalPlayer.Idled:Connect(function()
-    VirtualUser:CaptureController()
-    VirtualUser:ClickButton2(Vector2.new())
-end)
-
--- ============================================================
--- AIMBOT HELPERS
--- ============================================================
-local function GetClosestTarget()
-    local closestPart = nil
-    local shortestDist = Settings.FOV
+local function CreateEsp(player)
+    local objects = {
+        Box = Drawing.new("Square"),
+        Name = Drawing.new("Text")
+    }
     
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
-            local part = player.Character:FindFirstChild(Settings.TargetPart)
-            if part then
-                local pos, onScreen = Camera:WorldToViewportPoint(part.Position)
-                if onScreen then
-                    local dist = (Vector2.new(pos.X, pos.Y) - UserInputService:GetMouseLocation()).Magnitude
-                    if dist < shortestDist then
-                        closestPart = part
-                        shortestDist = dist
+    objects.Box.Visible = false
+    objects.Box.Color = Color3.fromRGB(130, 60, 240)
+    objects.Box.Thickness = 1
+    
+    objects.Name.Visible = false
+    objects.Name.Color = Color3.fromRGB(255, 255, 255)
+    objects.Name.Size = 14
+    objects.Name.Center = true
+    objects.Name.Outline = true
+    
+    EspObjects[player] = objects
+end
+
+local function RemoveEsp(player)
+    if EspObjects[player] then
+        for _, obj in pairs(EspObjects[player]) do
+            obj:Remove()
+        end
+        EspObjects[player] = nil
+    end
+end
+
+for _, v in pairs(Players:GetPlayers()) do
+    if v ~= LocalPlayer then CreateEsp(v) end
+end
+Players.PlayerAdded:Connect(CreateEsp)
+Players.PlayerRemoving:Connect(RemoveEsp)
+
+-- ============================================================
+-- MAIN LOOP
+-- ============================================================
+RunService.RenderStepped:Connect(function()
+    -- Aimlock logic
+    if Settings.AimbotEnabled and Settings.ShowFOV then
+        FOVCircle.Position = UserInputService:GetMouseLocation()
+        FOVCircle.Radius = Settings.FOV
+        FOVCircle.Visible = true
+    else
+        FOVCircle.Visible = false
+    end
+    
+    if Locking and Settings.AimbotEnabled then
+        local target = nil
+        local shortestDist = Settings.FOV
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+                local part = player.Character:FindFirstChild(Settings.TargetPart)
+                if part then
+                    local pos, onScreen = Camera:WorldToViewportPoint(part.Position)
+                    if onScreen then
+                        local dist = (Vector2.new(pos.X, pos.Y) - UserInputService:GetMouseLocation()).Magnitude
+                        if dist < shortestDist then target = part shortestDist = dist end
                     end
                 end
             end
         end
-    end
-    return closestPart
-end
-
--- ============================================================
--- MAIN LOOP (AIMBOT)
--- ============================================================
-RunService.RenderStepped:Connect(function()
-    if Settings.AimbotEnabled and (IsHoldingAimbot or MobileAimbotToggle) then
-        local target = GetClosestTarget()
         if target then
-            local lookAt = CFrame.new(Camera.CFrame.Position, target.Position)
-            Camera.CFrame = Camera.CFrame:Lerp(lookAt, Settings.Smoothness)
+            local pred = target.Position + (target.Velocity * Settings.Prediction)
+            Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, pred), Settings.Smoothness)
+        end
+    end
+
+    -- ESP rendering
+    for player, objects in pairs(EspObjects) do
+        if Settings.EspEnabled and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+            local hrp = player.Character.HumanoidRootPart
+            local pos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+            
+            if onScreen then
+                if Settings.Boxes then
+                    local size = (Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0, 3, 0)).Y - Camera:WorldToViewportPoint(hrp.Position + Vector3.new(0, 2.6, 0)).Y)
+                    objects.Box.Size = Vector2.new(size * 0.6, size)
+                    objects.Box.Position = Vector2.new(pos.X - objects.Box.Size.X / 2, pos.Y - objects.Box.Size.Y / 2)
+                    objects.Box.Visible = true
+                else objects.Box.Visible = false end
+                
+                if Settings.Names then
+                    objects.Name.Text = player.Name
+                    objects.Name.Position = Vector2.new(pos.X, pos.Y - (objects.Box.Size.Y / 2) - 15)
+                    objects.Name.Visible = true
+                else objects.Name.Visible = false end
+            else
+                objects.Box.Visible = false
+                objects.Name.Visible = false
+            end
+        else
+            objects.Box.Visible = false
+            objects.Name.Visible = false
         end
     end
 end)
 
-UserInputService.InputBegan:Connect(function(i, gpe)
-    if gpe then return end
-    if i.KeyCode == Settings.AimbotKey then IsHoldingAimbot = true end
+-- PC Input
+UserInputService.InputBegan:Connect(function(i, g)
+    if not g and i.KeyCode == Settings.Keybind then Locking = not Locking end
 end)
-UserInputService.InputEnded:Connect(function(i, gpe)
-    if i.KeyCode == Settings.AimbotKey then IsHoldingAimbot = false end
-end)
-
--- ============================================================
--- COLOR PALETTE
--- ============================================================
-local C = {
-    bg        = Color3.fromRGB(8,  7,  14),
-    surface   = Color3.fromRGB(14, 12, 24),
-    panel     = Color3.fromRGB(18, 16, 30),
-    card      = Color3.fromRGB(24, 21, 40),
-    sidebar   = Color3.fromRGB(11,  9, 20),
-    accent    = Color3.fromRGB(130, 60, 240),
-    accentDim = Color3.fromRGB(75,  35, 140),
-    accentGlow= Color3.fromRGB(175, 120, 255),
-    accentSoft= Color3.fromRGB(100, 55, 190),
-    text      = Color3.fromRGB(220, 215, 245),
-    textMid   = Color3.fromRGB(145, 138, 175),
-    textDim   = Color3.fromRGB(75,  68, 100),
-    green     = Color3.fromRGB(55,  200, 110),
-    red       = Color3.fromRGB(220, 60,  75),
-    border    = Color3.fromRGB(38,  32,  62),
-}
 
 -- ============================================================
 -- GUI SETUP
 -- ============================================================
+local C = {
+    bg = Color3.fromRGB(8,7,14), surface = Color3.fromRGB(14,12,24), panel = Color3.fromRGB(18,16,30),
+    card = Color3.fromRGB(24,21,40), sidebar = Color3.fromRGB(11,9,20), accent = Color3.fromRGB(130,60,240),
+    text = Color3.fromRGB(220,215,245), textDim = Color3.fromRGB(75,68,100)
+}
+
 local gui = Instance.new("ScreenGui", PlayerGui)
-gui.Name = "NayyStarboyyV2_UI"
+gui.Name = "NayyHubV3"
 gui.ResetOnSpawn = false
 
 local main = Instance.new("Frame", gui)
-main.Size = UDim2.new(0, 600, 0, 400)
-main.Position = UDim2.new(0.5, -300, 0.5, -200)
+main.Size = UDim2.new(0, 550, 0, 380)
+main.Position = UDim2.new(0.5, -275, 0.5, -190)
 main.BackgroundColor3 = C.bg
 main.Active = true
 main.Draggable = true
-Instance.new("UICorner", main).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", main)
 
-local sidebar = Instance.new("Frame", main)
-sidebar.Size = UDim2.new(0, 80, 1, 0)
-sidebar.BackgroundColor3 = C.sidebar
-Instance.new("UICorner", sidebar)
-
-local content = Instance.new("Frame", main)
-content.Position = UDim2.new(0, 80, 0, 0)
-content.Size = UDim2.new(1, -80, 1, 0)
-content.BackgroundColor3 = C.panel
-Instance.new("UICorner", content)
+-- Tab Controller
+local currentTab = "Combat"
+local pages = {}
 
 local function makeToggle(parent, text, callback)
-    local frame = Instance.new("Frame", parent)
-    frame.Size = UDim2.new(1, 0, 0, 40)
-    frame.BackgroundColor3 = C.card
-    Instance.new("UICorner", frame)
-    
-    local btn = Instance.new("TextButton", frame)
-    btn.Size = UDim2.new(1, 0, 1, 0)
-    btn.BackgroundTransparency = 1
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = UDim2.new(1, 0, 0, 40)
+    btn.BackgroundColor3 = C.card
     btn.Text = "  " .. text
     btn.TextColor3 = C.text
     btn.Font = Enum.Font.GothamSemibold
     btn.TextSize = 14
     btn.TextXAlignment = Enum.TextXAlignment.Left
+    Instance.new("UICorner", btn)
+    local p = Instance.new("Frame", btn)
+    p.Size = UDim2.new(0, 30, 0, 20)
+    p.Position = UDim2.new(1, -40, 0.5, -10)
+    p.BackgroundColor3 = C.textDim
+    Instance.new("UICorner", p).CornerRadius = UDim.new(1,0)
+    local s = false
+    btn.MouseButton1Click:Connect(function() s = not s p.BackgroundColor3 = s and C.accent or C.textDim callback(s) end)
+end
 
-    local status = Instance.new("Frame", frame)
-    status.Position = UDim2.new(1, -40, 0.5, -10)
-    status.Size = UDim2.new(0, 30, 0, 20)
-    status.BackgroundColor3 = C.textDim
-    Instance.new("UICorner", status).CornerRadius = UDim.new(1,0)
+-- Pages
+local function createPage(name)
+    local f = Instance.new("ScrollingFrame", main)
+    f.Position = UDim2.new(0, 110, 0, 50)
+    f.Size = UDim2.new(1, -120, 1, -70)
+    f.BackgroundTransparency = 1
+    f.Visible = (name == "Combat")
+    local l = Instance.new("UIListLayout", f) l.Padding = UDim.new(0, 10)
+    pages[name] = f
+    return f
+end
 
-    local state = false
-    btn.MouseButton1Click:Connect(function()
-        state = not state
-        status.BackgroundColor3 = state and C.accent or C.textDim
-        callback(state)
+local combat = createPage("Combat")
+makeToggle(combat, "Enable Aimlock", function(v) Settings.AimbotEnabled = v end)
+makeToggle(combat, "Show FOV circle", function(v) Settings.ShowFOV = v end)
+
+local espBox = createPage("ESP")
+makeToggle(espBox, "Enable Master ESP", function(v) Settings.EspEnabled = v end)
+makeToggle(espBox, "Enables Boxes", function(v) Settings.Boxes = v end)
+makeToggle(espBox, "Enables Names", function(v) Settings.Names = v end)
+
+-- Sidebar Tabs
+local tabContainer = Instance.new("Frame", main)
+tabContainer.Size = UDim2.new(0, 100, 1, 0)
+tabContainer.BackgroundColor3 = C.sidebar
+Instance.new("UICorner", tabContainer)
+
+local function addTab(name)
+    local b = Instance.new("TextButton", tabContainer)
+    b.Size = UDim2.new(1, 0, 0, 40)
+    b.BackgroundTransparency = 1
+    b.Text = name:upper()
+    b.TextColor3 = C.text
+    b.Font = Enum.Font.GothamBold
+    b.TextSize = 12
+    b.MouseButton1Click:Connect(function()
+        for k, v in pairs(pages) do v.Visible = (k == name) end
     end)
 end
+addTab("Combat")
+addTab("ESP")
 
--- ============================================================
--- ADDING COMBAT FEATURES
--- ============================================================
-local combatPage = Instance.new("ScrollingFrame", content)
-combatPage.Size = UDim2.new(1, 0, 1, 0)
-combatPage.BackgroundTransparency = 1
-combatPage.CanvasSize = UDim2.new(0, 0, 1.5, 0)
-local layout = Instance.new("UIListLayout", combatPage)
-layout.Padding = UDim.new(0, 10)
-Instance.new("UIPadding", combatPage).PaddingTop = UDim.new(0, 15)
-
-makeToggle(combatPage, "Enable Aimbot (Head)", function(v)
-    Settings.AimbotEnabled = v
-    if UserInputService.TouchEnabled then
-        MobileAimbotToggle = v -- Langsung aktif di mobile jika diaktifkan (atau bisa buat tombol melayang)
-    end
-end)
-
+-- Mobile Button
 if UserInputService.TouchEnabled then
-    local mobileBtn = Instance.new("TextButton", gui)
-    mobileBtn.Size = UDim2.new(0, 80, 0, 80)
-    mobileBtn.Position = UDim2.new(0.8, 0, 0.5, 0)
-    mobileBtn.BackgroundColor3 = C.accent
-    mobileBtn.Text = "AIM"
-    mobileBtn.Font = Enum.Font.GothamBold
-    mobileBtn.TextColor3 = C.text
-    Instance.new("UICorner", mobileBtn).CornerRadius = UDim.new(1, 0)
-    
-    mobileBtn.MouseButton1Down:Connect(function() MobileAimbotToggle = true end)
-    mobileBtn.MouseButton1Up:Connect(function() MobileAimbotToggle = false end)
+    local m = Instance.new("TextButton", gui)
+    m.Size = UDim2.new(0, 70, 0, 70)
+    m.Position = UDim2.new(0.8, 0, 0.4, 0)
+    m.BackgroundColor3 = C.accent
+    m.Text = "AIM"
+    m.Font = Enum.Font.GothamBold
+    m.TextColor3 = C.text
+    Instance.new("UICorner", m).CornerRadius = UDim.new(1,0)
+    m.MouseButton1Down:Connect(function() Locking = true end)
+    m.MouseButton1Up:Connect(function() Locking = false end)
 end
 
-print("NayyStarboyyV2: Combat Scripts Loaded!")
+print("NayyStarboyy HUB V3 Loaded!")
