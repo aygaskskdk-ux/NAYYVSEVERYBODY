@@ -1388,7 +1388,7 @@ end)
 local hideBtn2 = Instance.new("TextButton", gui)
 hideBtn2.Size = UDim2.new(0, 42, 0, 42)
 hideBtn2.Position = UDim2.new(1, -52, 0.5, -21)
-hideBtn2.Text = "HIDE"
+hideBtn2.Text = "Hide"
 hideBtn2.Font = Enum.Font.GothamBlack
 hideBtn2.TextSize = 15
 hideBtn2.BackgroundColor3 = C.accent
@@ -1414,14 +1414,14 @@ end, false, Enum.KeyCode.P)
 local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 local ESP_DATA = {}
-local PURPLE_ESP = Color3.fromRGB(130, 60, 240)
+local PINK_ESP = Color3.fromRGB(255, 204, 229)
 
 local function createESP(p)
 	local box = {}
 	for i = 1,8 do
 		local line = Drawing.new("Line")
-		line.Thickness = 2
-		line.Color = PURPLE_ESP
+		line.Thickness = 0
+		line.Color = PINK_ESP
 		line.Visible = false
 		table.insert(box, line)
 	end
@@ -1522,4 +1522,4 @@ end)
 -- ============================================================
 switchTab("FARM")
 task.wait(0.5)
-notify("NayoziSxN", "Script berhasil diload!", "success")
+notify("NayDCPTS", "Script berhasil diload!", "success")
