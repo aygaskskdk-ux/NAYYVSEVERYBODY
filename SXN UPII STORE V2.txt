@@ -100,10 +100,10 @@ gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 -- ============================================================
 local C = {
 	bg        = Color3.fromRGB(8,  7,  14),
-	surface   = Color3.fromRGB(14, 12, 24),
-	panel     = Color3.fromRGB(102, 255, 178),
-	card      = Color3.fromRGB(51,  255,  51),
-	sidebar   = Color3.fromRGB(11,  9, 20),
+	surface   = Color3.fromRGB(48, 99, 73),
+	panel     = Color3.fromRGB(24, 46, 40),
+	card      = Color3.fromRGB(54,  89,  79),
+	sidebar   = Color3.fromRGB(95,  191, 143),
 	accent    = Color3.fromRGB(130, 60, 240),
 	accentDim = Color3.fromRGB(75,  35, 140),
 	accentGlow= Color3.fromRGB(175, 120, 255),
