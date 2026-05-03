@@ -973,7 +973,7 @@ local loadLbl = Instance.new("TextLabel", loadBg)
 loadLbl.Size = UDim2.new(1,0,0,60)
 loadLbl.Position = UDim2.new(0,0,0.5,-30)
 loadLbl.BackgroundTransparency = 1
-loadLbl.Text = "NAY STORE..."
+loadLbl.Text = "NAYGANTENGG..."
 loadLbl.TextScaled = true
 loadLbl.Font = Enum.Font.GothamBlack
 loadLbl.TextColor3 = C.accent
@@ -1006,7 +1006,7 @@ respawnBtn.MouseButton1Click:Connect(function()
 		task.wait(0.3)
 	end
 	hideLoading()
-	loadLbl.Text = "NAY STORE..."
+	loadLbl.Text = "NAYGANTENGG..."
 	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, true)
 	notify("Respawn", "Berhasil respawn!", "success")
 	respStatusLbl.Text = "Respawn berhasil!"
@@ -1388,7 +1388,7 @@ end)
 local hideBtn2 = Instance.new("TextButton", gui)
 hideBtn2.Size = UDim2.new(0, 42, 0, 42)
 hideBtn2.Position = UDim2.new(1, -52, 0.5, -21)
-hideBtn2.Text = "E"
+hideBtn2.Text = "HIDE"
 hideBtn2.Font = Enum.Font.GothamBlack
 hideBtn2.TextSize = 15
 hideBtn2.BackgroundColor3 = C.accent
